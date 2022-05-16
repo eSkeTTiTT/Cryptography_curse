@@ -1,11 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Windows.Markup;
+using System.Windows.Threading;
 
 namespace Cryptography_curse.ViewModels.Base
 {
-    public class ViewModel : INotifyPropertyChanged
+    public abstract class ViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -19,9 +19,18 @@ namespace Cryptography_curse.ViewModels.Base
             }
 
             var invokationList = PropertyChanged.GetInvocationList();
+
+            var args = new PropertyChangedEventArgs(propertyName);
             foreach (var action in invokationList)
             {
-
+                if (action.Target is DispatcherObject dispatcherObject)
+                {
+                    dispatcherObject.Dispatcher.Invoke(action, this, args);
+                }
+                else
+                {
+                    action.DynamicInvoke(this, args);
+                }
             }
         }
 
