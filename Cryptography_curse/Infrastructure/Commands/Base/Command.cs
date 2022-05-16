@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Input;
 
-namespace Cryptography_curse.Infrastructure.Command.Base
+namespace Cryptography_curse.Infrastructure.Commands.Base
 {
     public abstract class Command : ICommand
     {
@@ -29,9 +27,7 @@ namespace Cryptography_curse.Infrastructure.Command.Base
             }
         }
 
-        bool ICommand.CanExecute(object parameter) => 
-            Executable 
-            && CanExecute(parameter);
+        bool ICommand.CanExecute(object parameter) => Executable && CanExecute(parameter);
 
         void ICommand.Execute(object parameter)
         {
