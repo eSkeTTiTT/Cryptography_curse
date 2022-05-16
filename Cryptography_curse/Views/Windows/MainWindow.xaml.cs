@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace Cryptography_curse
+namespace Cryptography_curse.Views.Windows
 {
     public partial class MainWindow : Window
     {
