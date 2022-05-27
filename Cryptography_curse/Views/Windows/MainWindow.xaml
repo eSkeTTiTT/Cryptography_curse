@@ -8,9 +8,21 @@
         Title="MainWindow" 
         Height="450" 
         Width="800">
-    <Grid>
-        <Menu>
-            <MenuItem Header="Lox"/>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Файл"/>
+            <MenuItem Header="Выход"/>
         </Menu>
-    </Grid>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem HorizontalAlignment="Right">
+                <ResizeGrip/>
+            </StatusBarItem>
+            <StatusBarItem Content="Готово">
+                
+            </StatusBarItem>
+        </StatusBar>
+        <Grid>
+            
+        </Grid>
+    </DockPanel>
 </Window>
