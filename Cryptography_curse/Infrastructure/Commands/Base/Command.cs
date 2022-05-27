@@ -11,7 +11,7 @@ namespace Cryptography_curse.Infrastructure.Commands.Base
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        private bool _executable;
+        private bool _executable = true;
         public bool Executable
         {
             get => _executable;
