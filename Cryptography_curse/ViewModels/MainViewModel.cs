@@ -66,6 +66,54 @@ namespace Cryptography_curse.ViewModels
 
         #endregion
 
+        #region Encrypt Commad
+
+        private ICommand _encryptComamnd;
+        public ICommand EncryptCommand => _encryptComamnd ??= new LambdaCommand(OnEncryptCommandExecute, CanEncryptCommandExecute);
+
+        private bool CanEncryptCommandExecute(object obj) =>
+            (obj is FileInfo file
+            && file.Exists
+            || SelectedFile != null)
+            && !string.IsNullOrWhiteSpace(Password);
+
+        private void OnEncryptCommandExecute(object obj)
+        {
+            var file = obj as FileInfo ?? SelectedFile;
+
+            if (file is null)
+            {
+                return;
+            }
+
+
+        }
+
+        #endregion
+
+        #region Decrypt Command
+
+        private ICommand _decryptComamnd;
+        public ICommand DecryptCommand => _decryptComamnd ??= new LambdaCommand(OnDecryptCommandExecute, CanDecryptCommandExecute);
+
+        private bool CanDecryptCommandExecute(object obj) =>
+            (obj is FileInfo file
+            && file.Exists
+            || SelectedFile != null)
+            && !string.IsNullOrWhiteSpace(Password);
+
+        private void OnDecryptCommandExecute(object obj)
+        {
+            var file = obj as FileInfo ?? SelectedFile;
+
+            if (file is null)
+            {
+                return;
+            }
+        }
+
+        #endregion
+
         #endregion
     }
 }
