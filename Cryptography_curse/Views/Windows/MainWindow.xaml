@@ -9,6 +9,8 @@
         Height="450" 
         Width="800">
     <Grid>
-
+        <Menu>
+            <MenuItem Header="Lox"/>
+        </Menu>
     </Grid>
 </Window>
