@@ -25,8 +25,49 @@
                 
             </StatusBarItem>
         </StatusBar>
-        <Grid>
-            
+        <Grid Margin="3">
+            <Grid.Resources>
+                <Style TargetType="{x:Type Label}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Style>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="Margin" Value="0 0 3 0"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label Content="Пароль:"/>
+            <TextBox
+                Grid.Column="1"
+                Text="11111111"
+                />
+            <Label
+                Grid.Row="1"
+                Content="Файл:"
+                />
+            <DockPanel
+                Grid.Column="1"
+                Grid.Row="1"
+                >
+                <Button 
+                    Padding="10 0"
+                    Content="Выбор"
+                    DockPanel.Dock="Right"
+                    />
+                <TextBox 
+                    IsReadOnly="True"
+                    BorderThickness="0"
+                    />
+            </DockPanel>
         </Grid>
     </DockPanel>
 </Window>
