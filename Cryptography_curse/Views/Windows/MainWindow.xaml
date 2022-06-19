@@ -71,7 +71,10 @@
                 <TextBox 
                     IsReadOnly="True"
                     BorderThickness="0"
-                    Text="{Binding SelectedFile.Name, Mode=OneWay}"
+                    Text="{Binding 
+                        SelectedFile.Name, 
+                        Mode=OneWay,
+                        UpdateSourceTrigger=PropertyChanged}"
                     ToolTip="{Binding SelectedFile.FullName}"
                     />
             </DockPanel>
@@ -81,7 +84,10 @@
                 />
             <TextBox
                 IsReadOnly="True"
-                Text="{Binding SelectedFile.Length, Mode=OneWay}"
+                Text="{Binding 
+                    SelectedFile.Length, 
+                    Mode=OneWay, 
+                    UpdateSourceTrigger=PropertyChanged}"
                 Grid.Column="1"
                 Grid.Row="2"
                 />

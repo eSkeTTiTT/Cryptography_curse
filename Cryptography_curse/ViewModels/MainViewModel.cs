@@ -11,9 +11,10 @@ namespace Cryptography_curse.ViewModels
     {
         #region Constructors
 
-        public MainViewModel(IUserDialog dialogService)
+        public MainViewModel(IUserDialog dialogService, IEncryptor encryptorService)
         {
             _userDialogService = dialogService;
+            _encryptorService = encryptorService;
         }
 
         #endregion
@@ -23,12 +24,14 @@ namespace Cryptography_curse.ViewModels
         #region Consts
 
         private const string FileOpenTitle = "Выбор файла";
+        private const string EncryptedFileSuffix = ".encrypted";
 
         #endregion
 
         #region Services
 
         private readonly IUserDialog _userDialogService;
+        private readonly IEncryptor _encryptorService;
 
         #endregion
 
@@ -86,7 +89,11 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
-
+            var defaultFileName = file.FullName + EncryptedFileSuffix;
+            if (!_userDialogService.SaveFile("Выбор файла для сохранения", out var destinationPath, defaultFileName))
+            {
+                return;
+            }
         }
 
         #endregion
@@ -107,6 +114,14 @@ namespace Cryptography_curse.ViewModels
             var file = obj as FileInfo ?? SelectedFile;
 
             if (file is null)
+            {
+                return;
+            }
+
+            var defaultFileName = file.FullName.EndsWith(EncryptedFileSuffix)
+                ? file.FullName.Substring(0, file.FullName.Length - EncryptedFileSuffix.Length)
+                : file.FullName;
+            if (!_userDialogService.SaveFile("Выбор файла для сохранения", out var destinationPath, defaultFileName))
             {
                 return;
             }

@@ -45,5 +45,27 @@ namespace Cryptography_curse.Services.Realization
 
             return true;
         }
+
+        public bool SaveFile(string title, out string selectedFile, string defaultFileName = null, string filter = "Все файлы (*.*)|*.*")
+        {
+            var file_dialog = new SaveFileDialog
+            {
+                Title = title,
+                Filter = filter
+            };
+
+            if (!string.IsNullOrWhiteSpace(defaultFileName))
+                file_dialog.FileName = defaultFileName;
+
+            if (file_dialog.ShowDialog() != true)
+            {
+                selectedFile = null;
+                return false;
+            }
+
+            selectedFile = file_dialog.FileName;
+
+            return true;
+        }
     }
 }
