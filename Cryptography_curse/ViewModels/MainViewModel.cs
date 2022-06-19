@@ -1,5 +1,9 @@
-﻿using Cryptography_curse.ViewModels.Base;
+﻿using Cryptography_curse.Infrastructure.Commands;
+using Cryptography_curse.Services.Interfaces;
+using Cryptography_curse.ViewModels.Base;
 using System;
+using System.IO;
+using System.Windows.Input;
 
 namespace Cryptography_curse.ViewModels
 {
@@ -7,16 +11,123 @@ namespace Cryptography_curse.ViewModels
     {
         #region Constructors
 
-        public MainViewModel()
+        public MainViewModel(IUserDialog dialogService, IEncryptor encryptorService)
         {
-
+            _userDialogService = dialogService;
+            _encryptorService = encryptorService;
         }
 
         #endregion
 
         #region Properties
 
+        #region Consts
 
+        private const string FileOpenTitle = "Выбор файла";
+        private const string EncryptedFileSuffix = ".encrypted";
+
+        #endregion
+
+        #region Services
+
+        private readonly IUserDialog _userDialogService;
+        private readonly IEncryptor _encryptorService;
+
+        #endregion
+
+        private string _password = "123";
+        public string Password
+        {
+            get => _password;
+            set => Set(ref _password, value);
+        }
+
+        private FileInfo _selectedFile;
+        public FileInfo SelectedFile
+        {
+            get => _selectedFile;
+            set => Set(ref _selectedFile, value);
+        }
+
+        #endregion
+
+        #region Commands
+
+        #region Selected File Command
+
+        private ICommand _selectFileCommand;
+        public ICommand SelectFileCommand => _selectFileCommand ??= new LambdaCommand(OnSelectedFileCommandExecute);
+
+        private void OnSelectedFileCommandExecute(object obj)
+        {
+            if (_userDialogService.OpenFile(FileOpenTitle, out string selectedFileName))
+            {
+                var selectedFile = new FileInfo(selectedFileName);
+                SelectedFile = selectedFile.Exists ? selectedFile : null;
+            }
+        }
+
+        #endregion
+
+        #region Encrypt Commad
+
+        private ICommand _encryptComamnd;
+        public ICommand EncryptCommand => _encryptComamnd ??= new LambdaCommand(OnEncryptCommandExecute, CanEncryptCommandExecute);
+
+        private bool CanEncryptCommandExecute(object obj) =>
+            (obj is FileInfo file
+            && file.Exists
+            || SelectedFile != null)
+            && !string.IsNullOrWhiteSpace(Password);
+
+        private void OnEncryptCommandExecute(object obj)
+        {
+            var file = obj as FileInfo ?? SelectedFile;
+
+            if (file is null)
+            {
+                return;
+            }
+
+            var defaultFileName = file.FullName + EncryptedFileSuffix;
+            if (!_userDialogService.SaveFile("Выбор файла для сохранения", out var destinationPath, defaultFileName))
+            {
+                return;
+            }
+        }
+
+        #endregion
+
+        #region Decrypt Command
+
+        private ICommand _decryptComamnd;
+        public ICommand DecryptCommand => _decryptComamnd ??= new LambdaCommand(OnDecryptCommandExecute, CanDecryptCommandExecute);
+
+        private bool CanDecryptCommandExecute(object obj) =>
+            (obj is FileInfo file
+            && file.Exists
+            || SelectedFile != null)
+            && !string.IsNullOrWhiteSpace(Password);
+
+        private void OnDecryptCommandExecute(object obj)
+        {
+            var file = obj as FileInfo ?? SelectedFile;
+
+            if (file is null)
+            {
+                return;
+            }
+
+            var defaultFileName = file.FullName.EndsWith(EncryptedFileSuffix)
+                ? file.FullName.Substring(0, file.FullName.Length - EncryptedFileSuffix.Length)
+                : file.FullName;
+            if (!_userDialogService.SaveFile("Выбор файла для сохранения", out var destinationPath, defaultFileName))
+            {
+                return;
+            }
+        }
+
+        #endregion
 
         #endregion
     }
