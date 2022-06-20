@@ -94,6 +94,10 @@ namespace Cryptography_curse.ViewModels
             {
                 return;
             }
+
+            _encryptorService.Encrypt(file.FullName, destinationPath, Password);
+
+            _userDialogService.Information("Шифрование", "Шифрование файла успешно завершено!");
         }
 
         #endregion
@@ -124,6 +128,17 @@ namespace Cryptography_curse.ViewModels
             if (!_userDialogService.SaveFile("Выбор файла для сохранения", out var destinationPath, defaultFileName))
             {
                 return;
+            }
+
+            bool result = _encryptorService.Decrypt(file.FullName, destinationPath, Password);
+
+            if (result)
+            {
+                _userDialogService.Information("Шифрование", "Дешифровка файла выполнено успешно!");
+            }
+            else
+            {
+                _userDialogService.Warning("Шифрование", "Ошибка при дешифровке файла: указан неверный пароль.");
             }
         }
 

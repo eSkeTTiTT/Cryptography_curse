@@ -1,13 +1,25 @@
 ﻿using Cryptography_curse.Services.Interfaces;
 using Microsoft.Win32;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 
 namespace Cryptography_curse.Services.Realization
 {
     public class UserDialogService : IUserDialog
     {
+        #region Information
+
+        public void Error(string title, string message) => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+
+        public void Information(string title, string message) => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+
+        public void Warning(string title, string message) => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+        #endregion
+
+        #region File operations
+
         public bool OpenFile(string title, out string selectedFile, string filter = "все файлы (*.*)|*.*")
         {
             var file_dialog = new OpenFileDialog
@@ -67,5 +79,7 @@ namespace Cryptography_curse.Services.Realization
 
             return true;
         }
+
+        #endregion
     }
 }
