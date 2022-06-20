@@ -80,7 +80,7 @@ namespace Cryptography_curse.ViewModels
             || SelectedFile != null)
             && !string.IsNullOrWhiteSpace(Password);
 
-        private void OnEncryptCommandExecute(object obj)
+        private async void OnEncryptCommandExecute(object obj)
         {
             var file = obj as FileInfo ?? SelectedFile;
 
@@ -95,7 +95,7 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
-            _encryptorService.Encrypt(file.FullName, destinationPath, Password);
+            await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password);
 
             _userDialogService.Information("Шифрование", "Шифрование файла успешно завершено!");
         }

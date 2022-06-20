@@ -1,7 +1,7 @@
 ﻿using Cryptography_curse.Services.Interfaces;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Cryptography_curse.Services.Realization
 {
@@ -17,7 +17,7 @@ namespace Cryptography_curse.Services.Realization
 
         private static ICryptoTransform GetEncryptor(string password, byte[] Slat = null)
         {
-            var pdb = new Rfc2898DeriveBytes(password, Slat ?? __Salt);            
+            var pdb = new Rfc2898DeriveBytes(password, Slat ?? __Salt);
             var algorithm = Aes.Create();
             algorithm.Key = pdb.GetBytes(32);
             algorithm.IV = pdb.GetBytes(16);
@@ -81,5 +81,58 @@ namespace Cryptography_curse.Services.Realization
 
             destination.FlushFinalBlock();
         }
+
+        #region Async
+
+        public async Task EncryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400)
+        {
+            var encryptor = GetEncryptor(password/*, Encoding.UTF8.GetBytes(sourcePath)*/);
+
+            await using var destinationEncrypted = File.Create(destinationPath, bufferSize);
+            await using var destination = new CryptoStream(destinationEncrypted, encryptor, CryptoStreamMode.Write);
+            await using var source = File.OpenRead(sourcePath);
+
+            int readed = 0;
+            var buffer = new byte[bufferSize];
+            do
+            {
+                readed = await source.ReadAsync(buffer, 0, bufferSize).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
+            }
+            while (readed > 0);
+
+            destination.FlushFinalBlock();
+        }
+
+        public async Task<bool> DecryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400)
+        {
+            var decryptor = GetDecryptor(password);
+
+            await using var destinatiobDecrypted = File.Create(destinationPath, bufferSize);
+            await using var destination = new CryptoStream(destinatiobDecrypted, decryptor, CryptoStreamMode.Write);
+            await using var source = File.OpenRead(sourcePath);
+
+            int readed = 0;
+            var buffer = new byte[bufferSize];
+            do
+            {
+                readed = await source.ReadAsync(buffer, 0, bufferSize).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
+            }
+            while (readed > 0);
+
+            try
+            {
+                destination.FlushFinalBlock();
+            }
+            catch (CryptographicException)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
     }
 }
