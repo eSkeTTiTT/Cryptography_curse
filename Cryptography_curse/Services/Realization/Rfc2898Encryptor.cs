@@ -114,6 +114,7 @@ namespace Cryptography_curse.Services.Realization
                 await using var source = File.OpenRead(sourcePath);
 
                 var fileLength = source.Length;
+                var lastPercent = 0.0;
 
                 int readed = 0;
                 var buffer = new byte[bufferSize];
@@ -123,7 +124,14 @@ namespace Cryptography_curse.Services.Realization
                     await destination.WriteAsync(buffer, 0, readed, cancel).ConfigureAwait(false);
 
                     var position = source.Position;
-                    progress?.Report((double)position / fileLength);
+                    var percent = (double)position / fileLength;
+
+                    // чтобы постоянно не уведомлять
+                    if (percent - lastPercent >= 0.01)
+                    {
+                        progress?.Report(percent);
+                        lastPercent = percent;
+                    }
 
                     if (cancel.IsCancellationRequested)
                     {
@@ -176,6 +184,7 @@ namespace Cryptography_curse.Services.Realization
                 await using var source = File.OpenRead(sourcePath);
 
                 var fileLength = source.Length;
+                var lastPercent = 0.0;
 
                 int readed = 0;
                 var buffer = new byte[bufferSize];
@@ -185,7 +194,14 @@ namespace Cryptography_curse.Services.Realization
                     await destination.WriteAsync(buffer, 0, readed, cancel).ConfigureAwait(false);
 
                     var position = source.Position;
-                    progress?.Report((double)position / fileLength);
+                    var percent = (double)position / fileLength;
+
+                    // чтобы постоянно не уведомлять
+                    if (percent - lastPercent >= 0.01)
+                    {
+                        progress?.Report(percent);
+                        lastPercent = percent;
+                    }
 
                     cancel.ThrowIfCancellationRequested();
                 }

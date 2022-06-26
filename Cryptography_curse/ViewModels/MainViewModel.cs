@@ -50,6 +50,13 @@ namespace Cryptography_curse.ViewModels
             set => Set(ref _selectedFile, value);
         }
 
+        private double _progressValue;
+        public double ProgressValue
+        {
+            get => _progressValue;
+            set => Set(ref _progressValue, value);
+        }
+
         #endregion
 
         #region Commands
@@ -96,12 +103,14 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
+            var progress = new Progress<double>(percent => ProgressValue = percent);
+
             (EncryptCommand as Command).Executable = false;
             (DecryptCommand as Command).Executable = false;
 
             try
             {
-                await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password);
+                await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password, progress: progress);
             }
             catch (OperationCanceledException)
             {
@@ -144,13 +153,15 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
+            var progress = new Progress<double>(percent => ProgressValue = percent);
+
             (EncryptCommand as Command).Executable = false;
             (DecryptCommand as Command).Executable = false;
 
             bool result = false;
             try
             {
-                result = await _encryptorService.DecryptAsync(file.FullName, destinationPath, Password);
+                result = await _encryptorService.DecryptAsync(file.FullName, destinationPath, Password, progress: progress);
             }
             catch (OperationCanceledException)
             {
