@@ -2,6 +2,7 @@
 using Cryptography_curse.Infrastructure.Commands.Base;
 using Cryptography_curse.Services.Interfaces;
 using Cryptography_curse.ViewModels.Base;
+using System;
 using System.IO;
 using System.Windows.Input;
 
@@ -97,7 +98,16 @@ namespace Cryptography_curse.ViewModels
 
             (EncryptCommand as Command).Executable = false;
             (DecryptCommand as Command).Executable = false;
-            await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password);
+
+            try
+            {
+                await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password);
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+
             (EncryptCommand as Command).Executable = true;
             (DecryptCommand as Command).Executable = true;
 
@@ -136,7 +146,17 @@ namespace Cryptography_curse.ViewModels
 
             (EncryptCommand as Command).Executable = false;
             (DecryptCommand as Command).Executable = false;
-            bool result = await _encryptorService.DecryptAsync(file.FullName, destinationPath, Password);
+
+            bool result = false;
+            try
+            {
+                result = await _encryptorService.DecryptAsync(file.FullName, destinationPath, Password);
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+
             (EncryptCommand as Command).Executable = true;
             (DecryptCommand as Command).Executable = true;
 
