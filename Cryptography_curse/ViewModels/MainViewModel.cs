@@ -1,7 +1,7 @@
 ﻿using Cryptography_curse.Infrastructure.Commands;
+using Cryptography_curse.Infrastructure.Commands.Base;
 using Cryptography_curse.Services.Interfaces;
 using Cryptography_curse.ViewModels.Base;
-using System;
 using System.IO;
 using System.Windows.Input;
 
@@ -95,7 +95,11 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
+            (EncryptCommand as Command).Executable = false;
+            (DecryptCommand as Command).Executable = false;
             await _encryptorService.EncryptAsync(file.FullName, destinationPath, Password);
+            (EncryptCommand as Command).Executable = true;
+            (DecryptCommand as Command).Executable = true;
 
             _userDialogService.Information("Шифрование", "Шифрование файла успешно завершено!");
         }
@@ -113,7 +117,7 @@ namespace Cryptography_curse.ViewModels
             || SelectedFile != null)
             && !string.IsNullOrWhiteSpace(Password);
 
-        private void OnDecryptCommandExecute(object obj)
+        private async void OnDecryptCommandExecute(object obj)
         {
             var file = obj as FileInfo ?? SelectedFile;
 
@@ -130,7 +134,11 @@ namespace Cryptography_curse.ViewModels
                 return;
             }
 
-            bool result = _encryptorService.Decrypt(file.FullName, destinationPath, Password);
+            (EncryptCommand as Command).Executable = false;
+            (DecryptCommand as Command).Executable = false;
+            bool result = await _encryptorService.DecryptAsync(file.FullName, destinationPath, Password);
+            (EncryptCommand as Command).Executable = true;
+            (DecryptCommand as Command).Executable = true;
 
             if (result)
             {

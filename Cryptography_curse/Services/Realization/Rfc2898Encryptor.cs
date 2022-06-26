@@ -1,6 +1,9 @@
 ﻿using Cryptography_curse.Services.Interfaces;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Cryptography_curse.Services.Realization
@@ -84,50 +87,131 @@ namespace Cryptography_curse.Services.Realization
 
         #region Async
 
-        public async Task EncryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400)
+        public async Task EncryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400, IProgress<double> progress = null, CancellationToken cancel = default)
         {
+            #region Check for exceptions
+
+            if (!(File.Exists(sourcePath)))
+            {
+                throw new FileNotFoundException(nameof(sourcePath));
+            }
+
+            if (bufferSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            }
+
+            #endregion
+
+            cancel.ThrowIfCancellationRequested();
+
             var encryptor = GetEncryptor(password/*, Encoding.UTF8.GetBytes(sourcePath)*/);
-
-            await using var destinationEncrypted = File.Create(destinationPath, bufferSize);
-            await using var destination = new CryptoStream(destinationEncrypted, encryptor, CryptoStreamMode.Write);
-            await using var source = File.OpenRead(sourcePath);
-
-            int readed = 0;
-            var buffer = new byte[bufferSize];
-            do
-            {
-                readed = await source.ReadAsync(buffer, 0, bufferSize).ConfigureAwait(false);
-                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
-            }
-            while (readed > 0);
-
-            destination.FlushFinalBlock();
-        }
-
-        public async Task<bool> DecryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400)
-        {
-            var decryptor = GetDecryptor(password);
-
-            await using var destinatiobDecrypted = File.Create(destinationPath, bufferSize);
-            await using var destination = new CryptoStream(destinatiobDecrypted, decryptor, CryptoStreamMode.Write);
-            await using var source = File.OpenRead(sourcePath);
-
-            int readed = 0;
-            var buffer = new byte[bufferSize];
-            do
-            {
-                readed = await source.ReadAsync(buffer, 0, bufferSize).ConfigureAwait(false);
-                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
-            }
-            while (readed > 0);
 
             try
             {
+                await using var destinationEncrypted = File.Create(destinationPath, bufferSize);
+                await using var destination = new CryptoStream(destinationEncrypted, encryptor, CryptoStreamMode.Write);
+                await using var source = File.OpenRead(sourcePath);
+
+                var fileLength = source.Length;
+
+                int readed = 0;
+                var buffer = new byte[bufferSize];
+                do
+                {
+                    readed = await source.ReadAsync(buffer, 0, bufferSize, cancel).ConfigureAwait(false);
+                    await destination.WriteAsync(buffer, 0, readed, cancel).ConfigureAwait(false);
+
+                    var position = source.Position;
+                    progress?.Report((double)position / fileLength);
+
+                    if (cancel.IsCancellationRequested)
+                    {
+                        cancel.ThrowIfCancellationRequested();
+                    }
+                }
+                while (readed > 0);
+
                 destination.FlushFinalBlock();
+
+                // если все прошло ок
+                progress?.Report(1.0);
             }
-            catch (CryptographicException)
+            catch (OperationCanceledException)
             {
-                return false;
+                File.Delete(destinationPath);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error in EncryptAsync: {0}", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<bool> DecryptAsync(string sourcePath, string destinationPath, string password, int bufferSize = 102400, IProgress<double> progress = null, CancellationToken cancel = default)
+        {
+            #region Check for exceptions
+
+            if (!(File.Exists(sourcePath)))
+            {
+                throw new FileNotFoundException(nameof(sourcePath));
+            }
+
+            if (bufferSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            }
+
+            #endregion
+
+            cancel.ThrowIfCancellationRequested();
+
+            var decryptor = GetDecryptor(password);
+
+            try
+            {
+                await using var destinationDecrypted = File.Create(destinationPath, bufferSize);
+                await using var destination = new CryptoStream(destinationDecrypted, decryptor, CryptoStreamMode.Write);
+                await using var source = File.OpenRead(sourcePath);
+
+                var fileLength = source.Length;
+
+                int readed = 0;
+                var buffer = new byte[bufferSize];
+                do
+                {
+                    readed = await source.ReadAsync(buffer, 0, bufferSize, cancel).ConfigureAwait(false);
+                    await destination.WriteAsync(buffer, 0, readed, cancel).ConfigureAwait(false);
+
+                    var position = source.Position;
+                    progress?.Report((double)position / fileLength);
+
+                    cancel.ThrowIfCancellationRequested();
+                }
+                while (readed > 0);
+
+                try
+                {
+                    destination.FlushFinalBlock();
+                }
+                catch (CryptographicException)
+                {
+                    return false;
+                }
+
+                // если все прошло ок
+                progress?.Report(1.0);
+            }
+            catch (OperationCanceledException)
+            {
+                File.Delete(destinationPath);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error in DecryptAsync: {0}", ex.Message);
+                throw;
             }
 
             return true;
